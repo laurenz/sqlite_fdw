@@ -48,6 +48,12 @@ PG_MODULE_MAGIC;
  */
 #define DEFAULT_ESTIMATED_LINES 1000000
 
+/* ExecStoreHeapTuples was introduced in PostgreSQL v12 */
+#if PG_VERSION_NUM < 120000
+#define ExecStoreHeapTuple(tuple, slot, shouldFree) \
+		ExecStoreTuple((tuple), (slot), InvalidBuffer, (shouldFree))
+#endif
+
 /*
  * SQL functions
  */
@@ -730,7 +736,7 @@ sqliteIterateForeignScan(ForeignScanState *node)
 		}
 
 		tuple = BuildTupleFromCStrings(TupleDescGetAttInMetadata(node->ss.ss_currentRelation->rd_att), values);
-		ExecStoreTuple(tuple, slot, InvalidBuffer, false);
+		ExecStoreHeapTuple(tuple, slot, false);
 	}
 
 	/* then return the slot */
